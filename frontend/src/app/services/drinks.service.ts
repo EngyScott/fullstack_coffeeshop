@@ -22,7 +22,7 @@ export class DrinksService {
   url = environment.apiServerUrl;
 
   public items: {[key: number]: Drink} = {};
-  // = {
+  // {
   //                             1: {
   //                             id: 1,
   //                             title: 'matcha shake',
