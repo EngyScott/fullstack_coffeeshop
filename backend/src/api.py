@@ -82,16 +82,16 @@ def create_drink(payload):
     if title is None or recipe is None:
         abort(400)
     else:
-        drink = []
+        drink = ' '
 
         new_drink = Drink(title=title, recipe=recipe)
         new_drink.insert()
-        print('new_drink:', new_drink)
+        print('new_drink:', new_drink.long())
 
         # drink.append(new_drink.long())
         # print('drink:', drink)
 
-    return drink
+    return jsonify({"success": True, "drinks": new_drink.long()})
 
 '''
 @TODO implement endpoint
