@@ -9,18 +9,14 @@ from .auth.auth import AuthError, requires_auth
 
 app = Flask(__name__)
 setup_db(app)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-'''
-  Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-'''
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -35,7 +31,11 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 def show_drinks():
     # print(jwt)
     all_drinks = Drink.query.all()
-    drinks = [drink.short() for drink in all_drinks]
+    print(all_drinks)
+    drinks = []
+    for drink in all_drinks:
+        drinks.append(drink.short())
+    print(drinks)
     return jsonify({"success": True, "drinks": drinks})
 
 '''
@@ -49,11 +49,14 @@ def show_drinks():
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
 def get_drinks_details(payload):
-    # print('payload', payload)
+    print('payload', payload)
 
+    drinks = []
     all_drinks = Drink.query.all()
-    print(all_drinks)
-    drinks = {drink.long() for drink in all_drinks}
+    print('all_drinks:', all_drinks)
+    for drink in all_drinks:
+        drinks.append(drink.long())
+    print('drinks:', drinks)
     return jsonify({"success": True, "drinks": drinks})
 
 '''
@@ -66,13 +69,16 @@ def get_drinks_details(payload):
         or appropriate status code indicating reason for failure
 '''
 @app.route('/drinks', methods=['POST'])
-@requires_auth('post:drinks')
+@requires_auth("post:drinks")
 def create_drink(payload):
     body = request.get_json()
+    # return body
+    print('body:', body)
     
     title = body.get("title", None)
-    recipe = body.get("recipe", None)
-
+    print('title', title) 
+    recipe = json.dumps(body.get("recipe", None))
+    print('recipe:', recipe)
     if title is None or recipe is None:
         abort(400)
     else:
@@ -80,11 +86,12 @@ def create_drink(payload):
 
         new_drink = Drink(title=title, recipe=recipe)
         new_drink.insert()
+        print('new_drink:', new_drink)
 
-        drink = [new_drink.long()]
+        # drink.append(new_drink.long())
+        # print('drink:', drink)
 
-    return jsonify({"success": True, "drinks": drink})
-
+    return drink
 
 '''
 @TODO implement endpoint
@@ -105,11 +112,11 @@ def modify_drink(id, payload):
 
     drink = Drink.query.filter_by(id=id).one_or_none()
 
-    if old_drink is None:
+    if drink is None:
         abort(404)
     
     title = body.get['title']
-    recipe = body.get['recipe']
+    recipe = json.dumps(body.get['recipe'])
     drink.title = title
     drink.recipe = recipe
 
@@ -133,7 +140,6 @@ def modify_drink(id, payload):
 @requires_auth('delete:drinks')
 def delete_drink(id, payload):
     drink = Drink.query.filter_by(id=id).one_or_none()
-    id = drink.id
     if drink is None:
         abort(404)
 
